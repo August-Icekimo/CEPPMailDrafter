@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"mime"
+	"net/mail"
 	"os"
 	"path/filepath"
 	"strings"
@@ -34,15 +35,15 @@ func (w *EMLWriter) Write(msg MailMessage, month string) error {
 	var buf bytes.Buffer
 
 	// Headers
-	buf.WriteString("From: " + msg.From + "\r\n")
+	buf.WriteString("From: " + formatAddress(msg.From) + "\r\n")
 	if len(msg.To) > 0 {
-		buf.WriteString("To: " + strings.Join(msg.To, ", ") + "\r\n")
+		buf.WriteString("To: " + formatAddresses(msg.To) + "\r\n")
 	}
 	if len(msg.Cc) > 0 {
-		buf.WriteString("Cc: " + strings.Join(msg.Cc, ", ") + "\r\n")
+		buf.WriteString("Cc: " + formatAddresses(msg.Cc) + "\r\n")
 	}
 	if len(msg.Bcc) > 0 {
-		buf.WriteString("Bcc: " + strings.Join(msg.Bcc, ", ") + "\r\n")
+		buf.WriteString("Bcc: " + formatAddresses(msg.Bcc) + "\r\n")
 	}
 	buf.WriteString("Subject: " + mime.BEncoding.Encode("UTF-8", msg.Subject) + "\r\n")
 	buf.WriteString("Date: " + time.Now().Format(time.RFC1123Z) + "\r\n")
@@ -95,5 +96,25 @@ func generateBoundary() string {
 	b := make([]byte, 16)
 	rand.Read(b)
 	return fmt.Sprintf("----=_Part_%x", b)
+}
+
+func formatAddresses(addrs []string) string {
+	var encoded []string
+	for _, raw := range addrs {
+		list, err := mail.ParseAddressList(raw)
+		if err == nil {
+			for _, a := range list {
+				encoded = append(encoded, a.String())
+			}
+		} else {
+			// fallback if it fails parsing
+			encoded = append(encoded, raw)
+		}
+	}
+	return strings.Join(encoded, ", ")
+}
+
+func formatAddress(raw string) string {
+	return formatAddresses([]string{raw})
 }
 

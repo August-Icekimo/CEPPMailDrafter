@@ -29,8 +29,8 @@ func TestEMLWriter(t *testing.T) {
 	}
 
 	outStr := string(b)
-	if !strings.Contains(outStr, "From: sender@test.com") {
-		t.Errorf("missing From header")
+	if !strings.Contains(outStr, "From: <sender@test.com>") && !strings.Contains(outStr, "From: sender@test.com") {
+		t.Errorf("missing From header: %s", outStr)
 	}
 	if !strings.Contains(outStr, "Subject: =?UTF-8?") {
 		t.Errorf("subject not b-encoded: %s", outStr)
