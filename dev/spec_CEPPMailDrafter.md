@@ -190,12 +190,12 @@ CEPPMailDrafter 是一個以 Go 編寫的 CLI 工具，讀取本地目錄中預�
 
 ---
 
-## Open Questions
+## Resolved Questions
 
-- ? **HTML vs Plain text body**：EML body 預設為 `text/html`，是否需要同時提供 `text/plain` fallback（`multipart/alternative`）？
-- ? **附件支援**：front matter 是否需要 `attachments:` 欄位以支援檔案附件（二進位 base64 嵌入）？或留待後續 feature？
-- ? **月份 data 檔案為可選還是必填**：若 `data/YYYY-MM.yaml` 不存在，是否以空資料繼續（所有 tag 保留原文）或報錯中止？
-- ? **多收件人格式**：`to:` 欄位是否需支援陣列（多個收件人）或僅單一 email？
+- **[Resolved] HTML vs Plain text body**：採 HTML-only body (`text/html`)，僅在有附件時使用 `multipart/mixed`，不需要提供 `text/plain` fallback。
+- **[Resolved] 附件支援**：決定**現在實作**。Front matter 支援 `attachments:` 欄位，讀取本地檔案並以 Base64 編碼嵌入 `.eml`。
+- **[Resolved] 月份 data 檔案為可選還是必填**：若缺失則**繼續執行並以空資料填充**，同時必須明確在 stderr 輸出 error log 警告使用者。
+- **[Resolved] 多收件人格式**：支援陣列格式（多個收件人），並且一併支援 `to:`、`cc:`、和 `bcc:` 欄位。
 
 ---
 
