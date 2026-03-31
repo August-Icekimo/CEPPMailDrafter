@@ -17,9 +17,16 @@ type YAMLSource struct {
 }
 
 // NewYAMLSource creates a new YAMLSource for a given month and data directory.
-// If the file does not exist, it prints a warning to stderr and returns an empty source.
+// It resolves the path as <dir>/<month>.yaml.
 func NewYAMLSource(month string, dir string) (DataSource, error) {
-	path := filepath.Join(dir, month+".yaml")
+	return NewYAMLSourceFromFile(dir, month+".yaml")
+}
+
+// NewYAMLSourceFromFile creates a new YAMLSource from an explicit directory and filename.
+// filename should include the .yaml extension.
+// If the file does not exist, it prints a warning to stderr and returns an empty source.
+func NewYAMLSourceFromFile(dir, filename string) (DataSource, error) {
+	path := filepath.Join(dir, filename)
 	b, err := os.ReadFile(path)
 	if err != nil {
 		if errors.Is(err, fs.ErrNotExist) {

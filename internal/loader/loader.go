@@ -15,7 +15,10 @@ var (
 
 // TemplateLoader defines how templates are loaded.
 type TemplateLoader interface {
+	// Load reads <dir>/<month>.md
 	Load(month string) (string, error)
+	// LoadFile reads <dir>/<filename> (filename may include extension).
+	LoadFile(dir, filename string) (string, error)
 }
 
 // FileLoader implements TemplateLoader using the local filesystem.
@@ -29,8 +32,15 @@ func NewFileLoader(dir string) *FileLoader {
 }
 
 // Load reads the template file for the given month from the configured directory.
+// The file path resolved is <dir>/<month>.md.
 func (fl *FileLoader) Load(month string) (string, error) {
-	info, err := os.Stat(fl.dir)
+	return fl.LoadFile(fl.dir, month+".md")
+}
+
+// LoadFile reads an arbitrary template file given an explicit directory and filename.
+// filename may include a path extension; if it has none, ".md" is NOT appended.
+func (fl *FileLoader) LoadFile(dir, filename string) (string, error) {
+	info, err := os.Stat(dir)
 	if err != nil {
 		if errors.Is(err, fs.ErrNotExist) {
 			return "", ErrDirMissing
@@ -38,11 +48,10 @@ func (fl *FileLoader) Load(month string) (string, error) {
 		return "", fmt.Errorf("stat template dir: %w", err)
 	}
 	if !info.IsDir() {
-		return "", fmt.Errorf("template path is not a directory: %s", fl.dir)
+		return "", fmt.Errorf("template path is not a directory: %s", dir)
 	}
 
-	ext := ".md"
-	filePath := filepath.Join(fl.dir, month+ext)
+	filePath := filepath.Join(dir, filename)
 
 	content, err := os.ReadFile(filePath)
 	if err != nil {
