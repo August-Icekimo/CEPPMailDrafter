@@ -61,10 +61,31 @@ CEPPMailDrafter 是一個以 Go 1.22+ 編寫的 CLI 工具，讀取本地目錄�
 
 如果有多個月分或多封不同通報信件需要一次性產生，可以撰寫簡單的 Bash 迴圈來批次執行：
 
+#### 方式 A：同時切換對應名稱的模板與資料
 ```bash
 # 批次處理多個專案的當月通知信
 for project in "project-A" "project-B" "project-C"; do
     ./maildraft --month "${project}-2025-01" 
 done
 ```
-成功後，`output/` 目錄內就會同時產生這三個專案的 `.eml` 檔案。
+
+#### 方式 B：將多個不同的模板，套用同一份資料檔
+若需要將多個不同樣板（例如 `templates/CEPP*.md`）全部套用在同一個資料檔（例如 `data/CEPPWEB2026.yaml`），可以使用細分模式撰寫迴圈（可參考專案內的 `batch_cepp.sh`）：
+
+```bash
+# 指定共用的資料檔名稱
+DATA_FILE="CEPPWEB2026.yaml"
+
+# 迴圈處理 templates 目錄下所有 CEPP 開頭的 Markdown 檔案
+for template_path in templates/CEPP*.md; do
+    template_filename=$(basename "$template_path")
+    
+    # 使用細分模式 (方式 B) 分別指定模板與資料檔
+    ./maildraft \
+        --template-dir "./templates" \
+        --template-file "$template_filename" \
+        --data-dir "./data" \
+        --data-file "$DATA_FILE"
+done
+```
+成功後，`output/` 目錄內就會同時產生這些處理完成的 `.eml` 檔案。
