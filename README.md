@@ -69,23 +69,31 @@ for project in "project-A" "project-B" "project-C"; do
 done
 ```
 
-#### 方式 B：將多個不同的模板，套用同一份資料檔
-若需要將多個不同樣板（例如 `templates/CEPP*.md`）全部套用在同一個資料檔（例如 `data/CEPPWEB2026.yaml`），可以使用細分模式撰寫迴圈（可參考專案內的 `batch_cepp.sh`）：
+#### 方式 B：將多個不同的模板，套用同一份資料檔（`batch_cepp.sh`）
+若需要將多個不同樣板（例如 `templates/CEPP*.md`）全部套用在同一個資料檔（例如 `data/CEPPWEB2026.yaml`），可直接使用專案內建的 `batch_cepp.sh`：
 
 ```bash
-# 指定共用的資料檔名稱
-DATA_FILE="CEPPWEB2026.yaml"
-
-# 迴圈處理 templates 目錄下所有 CEPP 開頭的 Markdown 檔案
-for template_path in templates/CEPP*.md; do
-    template_filename=$(basename "$template_path")
-    
-    # 使用細分模式 (方式 B) 分別指定模板與資料檔
-    ./maildraft \
-        --template-dir "./templates" \
-        --template-file "$template_filename" \
-        --data-dir "./data" \
-        --data-file "$DATA_FILE"
-done
+./batch_cepp.sh
 ```
-成功後，`output/` 目錄內就會同時產生這些處理完成的 `.eml` 檔案。
+
+腳本執行流程：
+
+1. **年月檢查**：先讀取資料檔（預設 `data/CEPPWEB2026.yaml`）中的 `YEAR` 與 `MONTH`，和現在時間比對。若不一致會跳出確認：
+
+   ```
+   注意：資料檔 CEPPWEB2026.yaml 的年月為 2026/6，現在時間為 2026/7。
+   是否改用現在時間 2026/7？ [Y/n]
+   ```
+
+   直接按 Enter（預設 Y）會自動將資料檔的 `YEAR`/`MONTH` 更新為當下年月；輸入 `n` 則保留原設定續跑。此設計是因為本作業通常是當月月底的例行提醒，99% 情況都應使用當月年月。
+2. **批次產生**：迴圈處理 `templates/CEPP*.md` 的所有模板，以細分模式將每個模板套用同一份資料檔：
+
+   ```bash
+   ./maildraft \
+       --template-dir "./templates" \
+       --template-file "$template_filename" \
+       --data-dir "./data" \
+       --data-file "$DATA_FILE"
+   ```
+
+成功後，`output/` 目錄內就會同時產生這些處理完成的 `.eml` 檔案。若要更換共用資料檔，修改腳本開頭的 `DATA_FILE` 變數即可。
