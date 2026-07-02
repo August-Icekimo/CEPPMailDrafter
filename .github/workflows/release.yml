@@ -14,12 +14,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        goos: [linux, darwin]
-        goarch: [amd64, arm64]
-        exclude:
-          # Optionally exclude older Intel Macs if you only want M1/M2/M3/M4 (darwin/arm64)
-          - goos: darwin
-            goarch: amd64
+        goos: [linux, windows]
+        goarch: [amd64]
 
     steps:
       - name: Checkout Code
@@ -41,11 +37,14 @@ jobs:
           CGO_ENABLED: 0
         run: |
           BINARY_NAME="maildraft-${GOOS}-${GOARCH}"
+          if [[ "$GOOS" == "windows" ]]; then
+            BINARY_NAME="${BINARY_NAME}.exe"
+          fi
           go build -ldflags="-s -w" -o "$BINARY_NAME" ./cmd/maildraft
 
       - name: Upload Release Asset
         uses: softprops/action-gh-release@v2
         with:
-          files: maildraft-${{ matrix.goos }}-${{ matrix.goarch }}
+          files: maildraft-${{ matrix.goos }}-${{ matrix.goarch }}*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
