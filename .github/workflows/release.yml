@@ -45,6 +45,9 @@ jobs:
       - name: Upload Release Asset
         uses: softprops/action-gh-release@v2
         with:
-          files: maildraft-${{ matrix.goos }}-${{ matrix.goarch }}*
+          files: |
+            maildraft-${{ matrix.goos }}-${{ matrix.goarch }}*
+            batch_cepp.sh
+            batch_cepp.ps1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

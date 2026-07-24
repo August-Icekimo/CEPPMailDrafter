@@ -1,4 +1,7 @@
-/.#!/bin/bash
+#!/bin/bash
+
+# 可經由第一個參數或 EXE_NAME 環境變數指定執行檔名稱，預設會按順序自動偵測
+EXE_NAME="${1:-${EXE_NAME:-}}"
 
 # 指定共用的資料檔名稱
 DATA_FILE="CEPPWEB2026.yaml"
@@ -28,6 +31,31 @@ if [[ "$data_year" != "$now_year" || "$data_month" != "$now_month" ]]; then
     fi
 fi
 
+# 判斷執行檔名稱 (傳入參數 > maildraft-linux-amd64 > maildraft > maildraft-windows-amd64.exe > maildraft.exe)
+if [[ -z "$EXE_NAME" ]]; then
+    if [[ -f "./maildraft-linux-amd64" ]]; then
+        EXE_NAME="./maildraft-linux-amd64"
+    elif [[ -f "./maildraft" ]]; then
+        EXE_NAME="./maildraft"
+    elif [[ -f "./maildraft-windows-amd64.exe" ]]; then
+        EXE_NAME="./maildraft-windows-amd64.exe"
+    elif [[ -f "./maildraft.exe" ]]; then
+        EXE_NAME="./maildraft.exe"
+    else
+        EXE_NAME="./maildraft"
+    fi
+else
+    if [[ "$EXE_NAME" != ./* && "$EXE_NAME" != /* ]]; then
+        EXE_NAME="./$EXE_NAME"
+    fi
+fi
+
+if [[ ! -f "$EXE_NAME" ]]; then
+    echo "找不到執行檔: $EXE_NAME，請確認執行檔已下載或編譯完成。"
+    exit 1
+fi
+
+echo "使用執行檔: $EXE_NAME"
 echo "開始批次產生 CEPP 信件..."
 
 # 迴圈處理 templates 目錄下所有 CEPP 開頭的 Markdown 檔案
@@ -44,8 +72,8 @@ for template_path in templates/CEPP*.md; do
     echo "========================================"
     echo "正在處理模板: $template_filename"
     
-    # 呼叫 maildraft，使用細分模式 (方式 B) 分別指定模板與資料檔
-    ./maildraft \
+    # 呼叫 maildraft 執行檔
+    "$EXE_NAME" \
         --template-dir "./templates" \
         --template-file "$template_filename" \
         --data-dir "./data" \
